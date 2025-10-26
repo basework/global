@@ -13,6 +13,9 @@ import Withdraw from "./pages/Withdraw";
 import Upgrade from "./pages/Upgrade";
 import UpgradePayment from "./pages/UpgradePayment";
 import UpgradePending from "./pages/UpgradePending";
+import GatewayActivation from "./pages/GatewayActivation";
+import GatewayPending from "./pages/GatewayPending";
+import Tasks from "./pages/Tasks";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +38,9 @@ const App = () => (
           <Route path="/upgrade" element={<Upgrade />} />
           <Route path="/upgrade-payment" element={<UpgradePayment />} />
           <Route path="/upgrade-pending" element={<UpgradePending />} />
+          <Route path="/gateway-activation" element={<GatewayActivation />} />
+          <Route path="/gateway-pending" element={<GatewayPending />} />
+          <Route path="/tasks" element={<Tasks />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

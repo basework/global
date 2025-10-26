@@ -43,6 +43,47 @@ export type Database = {
           },
         ]
       }
+      gateway_activations: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          receipt_url: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+          withdrawal_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          receipt_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          withdrawal_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          receipt_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          withdrawal_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gateway_activations_withdrawal_id_fkey"
+            columns: ["withdrawal_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           balance: number | null

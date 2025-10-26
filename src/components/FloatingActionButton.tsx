@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, History, Gift, User, DollarSign, MessageCircle, Radio } from "lucide-react";
+import { Menu, X, History, Gift, User, DollarSign, MessageCircle, Radio, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -9,12 +9,13 @@ export const FloatingActionButton = () => {
   const navigate = useNavigate();
 
   const menuItems = [
+    { icon: CheckCircle2, label: "Tasks", path: "/tasks" },
     { icon: History, label: "History", path: "/history" },
     { icon: Gift, label: "Referrals", path: "/referrals" },
     { icon: User, label: "Profile", path: "/profile" },
     { icon: DollarSign, label: "Withdraw", path: "/withdraw" },
-    { icon: Radio, label: "Channel", path: "#", external: true },
-    { icon: MessageCircle, label: "Support", path: "#", external: true },
+    { icon: Radio, label: "Channel", path: "https://t.me/officialbluepay2025", external: true },
+    { icon: MessageCircle, label: "Support", path: "https://wa.me/2349031234567", external: true },
   ];
 
   return (
@@ -33,7 +34,9 @@ export const FloatingActionButton = () => {
                   variant="ghost"
                   className="justify-start gap-3 hover:bg-muted"
                   onClick={() => {
-                    if (!item.external) {
+                    if (item.external) {
+                      window.open(item.path, "_blank");
+                    } else {
                       navigate(item.path);
                     }
                     setIsOpen(false);

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Eye, EyeOff, Copy, Gift } from "lucide-react";
+import { Eye, EyeOff, Copy, Gift, DollarSign, CheckCircle2, History } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
@@ -126,17 +126,32 @@ const Dashboard = () => {
           type: "credit",
           amount: 15000,
           description: "Mini claim bonus",
+          status: "completed",
         });
 
       toast.success("₦15,000 claimed successfully!");
       setLastClaimTime(new Date());
       setCanClaim(false);
-      loadProfile(user.id);
+      await loadProfile(user.id);
     } catch (error: any) {
       toast.error("Failed to claim bonus");
     } finally {
       setClaiming(false);
     }
+  };
+
+  const getTimeRemaining = () => {
+    if (!lastClaimTime || canClaim) return "Ready!";
+    
+    const now = Date.now();
+    const timeDiff = 5 * 60 * 1000 - (now - lastClaimTime.getTime());
+    
+    if (timeDiff <= 0) return "Ready!";
+    
+    const minutes = Math.floor(timeDiff / 60000);
+    const seconds = Math.floor((timeDiff % 60000) / 1000);
+    
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   if (loading || !profile) return null;
@@ -186,7 +201,7 @@ const Dashboard = () => {
               <Gift className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
               <div className="text-sm">
                 <p className="font-semibold text-foreground">Claim ₦15,000 Every 5 Minutes!</p>
-                <p className="text-muted-foreground">Free money waiting for you</p>
+                <p className="text-muted-foreground">{canClaim ? "Free money waiting!" : `Next claim: ${getTimeRemaining()}`}</p>
               </div>
             </div>
             <Button
@@ -194,10 +209,46 @@ const Dashboard = () => {
               disabled={!canClaim || claiming}
               className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
             >
-              {claiming ? "Claiming..." : canClaim ? "Claim Now" : "Wait..."}
+              {claiming ? "Claiming..." : canClaim ? "Claim Now" : getTimeRemaining()}
             </Button>
           </div>
         </Card>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-4">
+          <Button
+            onClick={() => navigate("/referrals")}
+            className="h-24 flex flex-col gap-2 bg-card/80 hover:bg-card border-border/50"
+            variant="outline"
+          >
+            <Gift className="w-6 h-6 text-primary" />
+            <span className="text-sm font-semibold">Refer & Earn</span>
+          </Button>
+          <Button
+            onClick={() => navigate("/withdraw")}
+            className="h-24 flex flex-col gap-2 bg-card/80 hover:bg-card border-border/50"
+            variant="outline"
+          >
+            <DollarSign className="w-6 h-6 text-secondary" />
+            <span className="text-sm font-semibold">Withdraw</span>
+          </Button>
+          <Button
+            onClick={() => navigate("/tasks")}
+            className="h-24 flex flex-col gap-2 bg-card/80 hover:bg-card border-border/50"
+            variant="outline"
+          >
+            <CheckCircle2 className="w-6 h-6 text-green-500" />
+            <span className="text-sm font-semibold">Tasks</span>
+          </Button>
+          <Button
+            onClick={() => navigate("/history")}
+            className="h-24 flex flex-col gap-2 bg-card/80 hover:bg-card border-border/50"
+            variant="outline"
+          >
+            <History className="w-6 h-6 text-blue-500" />
+            <span className="text-sm font-semibold">History</span>
+          </Button>
+        </div>
 
         {/* Referral Card */}
         <Card className="bg-card/80 backdrop-blur-lg border-border/50 p-6">
