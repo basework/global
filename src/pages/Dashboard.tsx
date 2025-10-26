@@ -48,7 +48,8 @@ const Dashboard = () => {
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      navigate("/auth");
+      // Add small delay to prevent race conditions on mobile
+      setTimeout(() => navigate("/auth"), 100);
     } else {
       setUser(session.user);
       loadProfile(session.user.id);

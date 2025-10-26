@@ -105,8 +105,13 @@ const UpgradePayment = () => {
               <span className="font-bold">1.</span>
               <span>Transfer ₦{tier.price.toLocaleString()} to the account details below</span>
             </p>
-            <div className="bg-muted/50 p-4 rounded-lg">
-              <p className="font-mono text-xs mb-1">Account will be provided via support</p>
+            <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+              <p className="text-sm font-semibold">Bank Details</p>
+              <div className="space-y-1 text-sm">
+                <p className="font-mono">Account: 5569742889</p>
+                <p>Name: SUNDAY CHINEMEREM LIBERTY</p>
+                <p>Bank: Moniepoint MFB</p>
+              </div>
             </div>
             <p className="flex gap-2">
               <span className="font-bold">2.</span>

@@ -20,7 +20,7 @@ const Referrals = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate("/auth");
+        setTimeout(() => navigate("/auth"), 100);
         return;
       }
 
@@ -39,7 +39,10 @@ const Referrals = () => {
     }
   };
 
-  const referralLink = profile ? `${window.location.origin}/auth?ref=${profile.referral_code}` : "";
+  const siteUrl = window.location.hostname.includes('netlify.app') 
+    ? 'https://chixx9ja.netlify.app' 
+    : window.location.origin;
+  const referralLink = profile ? `${siteUrl}/auth?ref=${profile.referral_code}` : "";
 
   const copyReferralCode = () => {
     navigator.clipboard.writeText(referralLink);

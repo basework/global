@@ -12,11 +12,23 @@ const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Capture and persist referral code immediately
+  const refParam = searchParams.get("ref");
+  const storedRef = localStorage.getItem("referralCode");
+  const initialRefCode = refParam || storedRef || "";
+  
+  useEffect(() => {
+    if (refParam) {
+      localStorage.setItem("referralCode", refParam);
+    }
+  }, [refParam]);
+  
   const [signupData, setSignupData] = useState({
     fullName: "",
     email: "",
     password: "",
-    referralCode: searchParams.get("ref") || "",
+    referralCode: initialRefCode,
   });
   const [loginData, setLoginData] = useState({
     email: "",
@@ -38,13 +50,16 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      // Use stored ref code if available
+      const finalRefCode = signupData.referralCode || localStorage.getItem("referralCode") || "";
+      
       const { data, error } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
         options: {
           data: {
             fullName: signupData.fullName,
-            referralCode: signupData.referralCode,
+            referralCode: finalRefCode,
           },
           emailRedirectTo: `${window.location.origin}/dashboard`,
         },
@@ -53,6 +68,8 @@ const Auth = () => {
       if (error) throw error;
 
       if (data.user) {
+        // Clear stored referral code after successful signup
+        localStorage.removeItem("referralCode");
         toast.success("Welcome to Chixx9ja! 🎉");
         setTimeout(() => navigate("/welcome"), 1000);
       }
