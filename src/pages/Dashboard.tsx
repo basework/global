@@ -9,6 +9,7 @@ import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { PromotionsCarousel } from "@/components/PromotionsCarousel";
 import { ArrowRight } from "lucide-react";
 import { WelcomeModal } from "@/components/WelcomeModal";
+import { WithdrawalNotification } from "@/components/WithdrawalNotification";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -162,6 +163,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen liquid-bg pb-20" style={{ position: 'relative', zIndex: 1 }}>
       <WelcomeModal />
+      <WithdrawalNotification />
       {/* Header */}
       <div className="bg-gradient-to-r from-primary to-secondary p-4 text-primary-foreground glow-primary" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 2 }}>
         <div className="flex items-center gap-3">
@@ -244,7 +246,7 @@ const Dashboard = () => {
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <Gift className="w-5 h-5 text-primary" />
-              <span className="text-xs font-semibold">Refer & Earn</span>
+              <span className="text-xs font-semibold">💸 Refer & Earn</span>
             </button>
             <button
               type="button"
@@ -253,7 +255,7 @@ const Dashboard = () => {
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <DollarSign className="w-5 h-5 text-secondary" />
-              <span className="text-xs font-semibold">Withdraw</span>
+              <span className="text-xs font-semibold">💳 Withdraw</span>
             </button>
             <button
               type="button"
@@ -262,7 +264,7 @@ const Dashboard = () => {
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <CheckCircle2 className="w-5 h-5 text-green-500" />
-              <span className="text-xs font-semibold">Tasks</span>
+              <span className="text-xs font-semibold">✅ Tasks</span>
             </button>
             <button
               type="button"
@@ -271,7 +273,7 @@ const Dashboard = () => {
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <History className="w-5 h-5 text-blue-500" />
-              <span className="text-xs font-semibold">History</span>
+              <span className="text-xs font-semibold">📊 History</span>
             </button>
           </div>
         </div>
