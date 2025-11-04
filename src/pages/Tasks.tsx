@@ -23,7 +23,7 @@ const Tasks = () => {
       description: "Join our WhatsApp community for instant updates",
       reward: "₦5,000",
       status: "available",
-      link: "https://chat.whatsapp.com/G24PrH7JVABBhXsC8knGFC",
+      link: "https://chat.whatsapp.com/BR6VyEEDTw3I86ZvxAjwBU?mode=wwt",
     },
     {
       id: 3,
