@@ -12,7 +12,7 @@ const Community = () => {
   };
 
   const openTelegramGroup = () => {
-    window.open("https://chat.whatsapp.com/BR6VyEEDTw3I86ZvxAjwBU?mode=wwt", "_blank", "noopener,noreferrer");
+    window.open("https://chat.whatsapp.com/EB6wii8cqxI25rENGOzI5d?mode=wwt", "_blank", "noopener,noreferrer");
   };
 
   return (
