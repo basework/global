@@ -110,11 +110,11 @@ const UpgradePayment = () => {
               <p className="text-sm font-semibold">Bank Details</p>
               <div className="space-y-1 text-sm">
                 <div className="flex items-center justify-between">
-                  <p className="font-mono">Account: 1041920149</p>
-                  <CopyButton text="1041920149" />
+                  <p className="font-mono">Account: 0108835271</p>
+                  <CopyButton text="0108835271" />
                 </div>
-                <p>Name: Moneey App-Chinemerem Liberty Sunday</p>
-                <p>Bank: VFD Bank</p>
+                <p>Name: CHINEMEREM LIBERTY</p>
+                <p>Bank: Sterling Bank</p>
               </div>
             </div>
             <p className="flex gap-2">
