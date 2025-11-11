@@ -3,28 +3,21 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json',
 }
 
-type SpinOutcome = 'WIN' | 'LOSE' | 'TRY_AGAIN'
-
 Deno.serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { 
-      status: 204,
-      headers: corsHeaders 
-    })
+    return new Response(null, { status: 200, headers: corsHeaders })
   }
 
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ code: 'UNAUTHENTICATED', message: 'Authentication required' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ success: false, message: 'Authentication required' }),
+        { status: 200, headers: corsHeaders }
       )
     }
 
@@ -39,134 +32,154 @@ Deno.serve(async (req) => {
     )
 
     // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseClient.auth.getUser()
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
 
     if (authError || !user) {
       console.error('Auth error:', authError)
       return new Response(
-        JSON.stringify({ code: 'UNAUTHENTICATED', message: 'Invalid session' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ success: false, message: 'Invalid session' }),
+        { status: 200, headers: corsHeaders }
       )
     }
 
     const { stake } = await req.json()
 
+    // Validate stake
     if (!stake || ![50000, 100000, 150000].includes(stake)) {
       return new Response(
-        JSON.stringify({ code: 'BAD_STAKE', message: 'Invalid stake amount. Must be 50000, 100000, or 150000' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ success: false, message: 'Invalid stake amount. Must be 50000, 100000, or 150000' }),
+        { status: 200, headers: corsHeaders }
       )
     }
 
-    // Get current balance
+    // Get current balance FOR UPDATE (lock row)
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('balance')
       .eq('id', user.id)
       .single()
 
-    if (profileError) throw profileError
-
-    const currentBalance = Number(profile.balance) || 0
-
-    // Validate balance
-    if (currentBalance < stake) {
+    if (profileError) {
+      console.error('Profile error:', profileError)
       return new Response(
-        JSON.stringify({ code: 'INSUFFICIENT_BALANCE', message: 'Insufficient balance' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ success: false, message: 'Failed to fetch wallet' }),
+        { status: 200, headers: corsHeaders }
       )
     }
 
-    // Server-side outcome determination
-    // LOSE: 60%, TRY_AGAIN: 25%, WIN: 15%
-    const random = Math.random() * 100
-    let outcome: SpinOutcome
-    let delta: number
+    const currentBalance = Number(profile.balance) || 0
 
-    if (random < 60) {
-      // LOSE - 60%
-      outcome = 'LOSE'
-      delta = -stake
-    } else if (random < 85) {
-      // TRY_AGAIN - 25%
-      outcome = 'TRY_AGAIN'
-      delta = -stake
-    } else {
-      // WIN - 15%
-      outcome = 'WIN'
-      delta = stake * 2 // stake + profit
+    // Check balance
+    if (currentBalance < stake) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Insufficient balance' }),
+        { status: 200, headers: corsHeaders }
+      )
     }
 
-    const newBalance = currentBalance + delta
+    // Deduct stake first
+    const balanceAfterDeduct = currentBalance - stake
 
-    // Update balance atomically
+    // Determine result with fixed probabilities: WIN 25%, TRY 15%, LOSE 60%
+    const random = Math.random() * 100
+    let result: 'WIN' | 'LOSE' | 'TRY'
+    let prize = 0
+    let newBalance = balanceAfterDeduct
+
+    if (random < 25) {
+      // WIN - 25%
+      result = 'WIN'
+      prize = stake * 2
+      newBalance += prize
+    } else if (random < 40) {
+      // TRY - 15%
+      result = 'TRY'
+      prize = 0
+      // Balance already deducted, no additional change
+    } else {
+      // LOSE - 60%
+      result = 'LOSE'
+      prize = 0
+      // Balance already deducted
+    }
+
+    // Update balance
     const { error: updateError } = await supabaseClient
       .from('profiles')
       .update({ balance: newBalance })
       .eq('id', user.id)
 
-    if (updateError) throw updateError
+    if (updateError) {
+      console.error('Update error:', updateError)
+      return new Response(
+        JSON.stringify({ success: false, message: 'Failed to update balance' }),
+        { status: 200, headers: corsHeaders }
+      )
+    }
 
-    // Create transaction record
-    const transactionType = 
-      outcome === 'WIN' ? 'spin_win' : 
-      outcome === 'LOSE' ? 'spin_lose' : 
-      'spin_try_again'
-
-    const { data: transaction, error: txError } = await supabaseClient
-      .from('transactions')
+    // Record spin
+    const { error: spinError } = await supabaseClient
+      .from('spins')
       .insert({
         user_id: user.id,
-        type: transactionType,
-        amount: Math.abs(delta),
-        description: `Spin ${outcome} - Stake: ₦${stake.toLocaleString()}`,
+        stake,
+        result,
+        prize,
+      })
+
+    if (spinError) {
+      console.error('Spin insert error:', spinError)
+    }
+
+    // Create transaction records
+    // 1. Debit stake
+    await supabaseClient.from('transactions').insert({
+      user_id: user.id,
+      type: 'spin_debit',
+      amount: stake,
+      description: `Spin stake: ₦${stake.toLocaleString()}`,
+      status: 'completed',
+    })
+
+    // 2. Credit prize if any
+    if (prize > 0) {
+      await supabaseClient.from('transactions').insert({
+        user_id: user.id,
+        type: 'spin_credit',
+        amount: prize,
+        description: `Spin ${result}: ₦${prize.toLocaleString()}`,
         status: 'completed',
       })
-      .select()
-      .single()
+    }
 
-    if (txError) throw txError
+    const message = 
+      result === 'WIN' ? `You won ₦${prize.toLocaleString()}!` :
+      result === 'TRY' ? 'Try again!' :
+      'Better luck next time!'
 
-    console.log(`Spin completed for user ${user.id}: ${outcome}, stake: ${stake}, delta: ${delta}, new balance: ${newBalance}`)
+    console.log(`Spin: user=${user.id}, stake=${stake}, result=${result}, prize=${prize}, newBalance=${newBalance}`)
 
     return new Response(
       JSON.stringify({
-        outcome,
-        stake,
-        delta,
+        success: true,
+        result,
+        prize,
         newBalance,
-        txId: transaction.id,
+        message,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: corsHeaders }
     )
   } catch (error) {
     console.error('Spin error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const errorId = crypto.randomUUID()
     console.error(`Error ID ${errorId}:`, error)
     
     return new Response(
       JSON.stringify({ 
-        code: 'SPIN_FAILED', 
-        message: errorMessage,
-        errorId 
+        success: false,
+        message: 'Spin failed. Please try again.',
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { status: 200, headers: corsHeaders }
     )
   }
 })

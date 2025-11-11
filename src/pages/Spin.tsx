@@ -78,31 +78,35 @@ const Spin = () => {
       });
 
       if (error) {
-        console.error("Spin error:", error);
+        console.error("Spin invoke error:", error);
+        toast.error("Spin failed—no charges made. Try again.");
+        setIsSpinning(false);
+        setSpinResult(null);
+        return;
+      }
+
+      // Check for success
+      if (!data?.success) {
+        console.error("Spin failed:", data?.message);
         
-        // Handle specific error codes
-        if (error.message?.includes('INSUFFICIENT_BALANCE') || data?.code === 'INSUFFICIENT_BALANCE') {
+        // Handle insufficient balance
+        if (data?.message?.toLowerCase().includes('insufficient')) {
           setShowAddBalance(true);
           setIsSpinning(false);
           setSpinResult(null);
           return;
         }
         
-        throw error;
+        toast.error(data?.message || "Spin failed—no charges made. Try again.");
+        setIsSpinning(false);
+        setSpinResult(null);
+        return;
       }
 
-      // Check for error in response data
-      if (data?.code && data.code !== 'OK') {
-        if (data.code === 'INSUFFICIENT_BALANCE') {
-          setShowAddBalance(true);
-          setIsSpinning(false);
-          setSpinResult(null);
-          return;
-        }
-        throw new Error(data.message || 'Spin failed');
-      }
-
-      const { outcome, delta, newBalance } = data;
+      const { result, newBalance, message } = data;
+      
+      // Map result to outcome format for wheel
+      const outcome = result === 'TRY' ? 'TRY_AGAIN' : result;
       
       // Set spin result to trigger wheel animation
       setSpinResult(outcome);
@@ -110,15 +114,16 @@ const Spin = () => {
       // Wait for wheel animation to complete
       setTimeout(() => {
         setLastOutcome(outcome);
-        setLastDelta(delta);
+        setLastDelta(newBalance - balance);
         setBalance(newBalance);
         setShowResult(true);
         setIsSpinning(false);
+        if (message) toast.success(message);
       }, 4000); // Match wheel animation duration
 
     } catch (error: any) {
       console.error("Spin failed:", error);
-      toast.error(error.message || "Spin failed—no charges made. Try again.");
+      toast.error("Spin failed—no charges made. Try again.");
       setIsSpinning(false);
       setSpinResult(null);
     }

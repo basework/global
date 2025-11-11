@@ -179,6 +179,33 @@ export type Database = {
           },
         ]
       }
+      spins: {
+        Row: {
+          created_at: string | null
+          id: string
+          prize: number
+          result: string
+          stake: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          prize?: number
+          result: string
+          stake: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          prize?: number
+          result?: string
+          stake?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       topup_receipts: {
         Row: {
           created_at: string | null
