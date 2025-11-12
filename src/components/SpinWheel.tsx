@@ -32,12 +32,17 @@ export const SpinWheel = ({ isSpinning, result }: SpinWheelProps) => {
       // Find target segment index based on result
       const targetIndex = segments.findIndex(seg => seg.outcome === result);
       
-      // Calculate rotation: multiple full rotations + target segment
-      const baseRotation = 360 * 5; // 5 full spins
+      // Calculate rotation: 5-6 full spins + target segment
+      const fullSpins = 5 + Math.random(); // 5 to 6 full rotations for variety
+      const baseRotation = 360 * fullSpins;
       const segmentAngle = 360 / segments.length;
-      const targetRotation = baseRotation + (360 - targetIndex * segmentAngle) + segmentAngle / 2;
+      // Rotate to target segment (accounting for pointer at top)
+      const targetAngle = 360 - (targetIndex * segmentAngle) + segmentAngle / 2;
       
-      setRotation(targetRotation);
+      // Add to previous rotation to ensure continuous forward motion
+      const newRotation = rotation + baseRotation + targetAngle;
+      
+      setRotation(newRotation);
     }
   }, [isSpinning, result]);
 
