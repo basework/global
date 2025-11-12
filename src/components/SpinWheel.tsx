@@ -32,8 +32,8 @@ export const SpinWheel = ({ isSpinning, result }: SpinWheelProps) => {
       // Find target segment index based on result
       const targetIndex = segments.findIndex(seg => seg.outcome === result);
       
-      // Calculate rotation: 5-6 full spins + target segment
-      const fullSpins = 5 + Math.random(); // 5 to 6 full rotations for variety
+      // Calculate rotation: 10-12 full spins + target segment
+      const fullSpins = 10 + Math.random() * 2; // 10 to 12 full rotations for realistic casino feel
       const baseRotation = 360 * fullSpins;
       const segmentAngle = 360 / segments.length;
       // Rotate to target segment (accounting for pointer at top)
@@ -58,8 +58,11 @@ export const SpinWheel = ({ isSpinning, result }: SpinWheelProps) => {
           {/* Wheel */}
           <svg
             viewBox="0 0 200 200"
-            className="w-full h-full transition-transform duration-[4000ms] ease-out"
-            style={{ transform: `rotate(${rotation}deg)` }}
+            className="w-full h-full transition-transform duration-[7000ms]"
+            style={{ 
+              transform: `rotate(${rotation}deg)`,
+              transitionTimingFunction: 'cubic-bezier(0.33, 1, 0.68, 1)'
+            }}
           >
             {segments.map((segment, index) => {
               const angle = (360 / segments.length) * index;

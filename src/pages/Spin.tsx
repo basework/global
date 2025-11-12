@@ -122,7 +122,7 @@ const Spin = () => {
         setShowResult(true);
         setIsSpinning(false);
         if (message) toast.success(message);
-      }, 4000); // Match wheel animation duration
+      }, 7000); // Match wheel animation duration (7 seconds)
 
     } catch (error: any) {
       console.error("Spin failed:", error);
