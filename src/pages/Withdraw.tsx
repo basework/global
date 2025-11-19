@@ -50,7 +50,7 @@ const Withdraw = () => {
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setProfile(data);
@@ -121,7 +121,7 @@ const Withdraw = () => {
               status: "awaiting_activation_payment",
             })
             .select()
-            .single();
+            .maybeSingle();
 
           if (withdrawalError) throw withdrawalError;
 

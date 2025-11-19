@@ -81,7 +81,7 @@ export const AddBalanceModal = ({ open, onOpenChange, onSuccess }: AddBalanceMod
           receipt_count: files.length,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (topupError) throw topupError;
 

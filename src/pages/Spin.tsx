@@ -44,7 +44,7 @@ const Spin = () => {
         .from("profiles")
         .select("balance")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setBalance(Number(data.balance) || 0);

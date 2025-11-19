@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       .from('profiles')
       .select('balance')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (profileError) {
       console.error('Profile error:', profileError)
