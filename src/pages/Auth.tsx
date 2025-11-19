@@ -90,11 +90,15 @@ const Auth = () => {
 
       // Handle referral
       if (finalRefCode && finalRefCode.trim() !== "") {
-        const { data: referrer } = await supabase
+        const { data: referrer, error: referrerError } = await supabase
           .from("profiles")
           .select("id, balance, total_referrals")
           .eq("referral_code", finalRefCode.trim())
           .maybeSingle();
+
+        if (referrerError) {
+          console.error("Error finding referrer:", referrerError);
+        }
 
         if (referrer) {
           const currentBalance = Number(referrer.balance) || 0;
@@ -103,13 +107,17 @@ const Auth = () => {
           const newBalance = currentBalance + 15000;
           const newReferrals = currentReferrals + 1;
 
-          await supabase
+          const { error: updateError } = await supabase
             .from("profiles")
             .update({
               balance: newBalance,
               total_referrals: newReferrals,
             })
             .eq("id", referrer.id);
+
+          if (updateError) {
+            console.error("Error updating referrer:", updateError);
+          }
 
           await supabase.from("transactions").insert({
             user_id: referrer.id,
