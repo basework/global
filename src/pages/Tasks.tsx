@@ -19,7 +19,7 @@ const Tasks = () => {
     },
     {
       id: 2,
-      title: "Join WhatsApp Group",
+      title: "Join WhatsApp Group", 
       description: "Join our WhatsApp community for instant updates",
       reward: "₦5,000",
       link: "https://chat.whatsapp.com/EB6wii8cqxI25rENGOzI5d?mode=wwt",
@@ -32,19 +32,19 @@ const Tasks = () => {
     },
   ];
 
-  // Check if task was already claimed today
+  // Check if task was claimed today
   const isTaskClaimedToday = (taskId: number) => {
-    const lastClaimDate = localStorage.getItem(`task_${taskId}_last_claim`);
-    if (!lastClaimDate) return false;
+    const lastClaim = localStorage.getItem(`task_${taskId}_claimed`);
+    if (!lastClaim) return false;
     
     const today = new Date().toDateString();
-    const lastClaim = new Date(lastClaimDate).toDateString();
-    return today === lastClaim;
+    const lastClaimDate = new Date(lastClaim).toDateString();
+    return today === lastClaimDate;
   };
 
   // Mark task as claimed for today
   const markTaskAsClaimed = (taskId: number) => {
-    localStorage.setItem(`task_${taskId}_last_claim`, new Date().toISOString());
+    localStorage.setItem(`task_${taskId}_claimed`, new Date().toISOString());
   };
 
   const handleClaim = async (task: any) => {
@@ -70,23 +70,32 @@ const Tasks = () => {
 
       if (error) throw error;
 
-      let newBalance = profile.balance;
-      if (task.id === 1 || task.id === 2) newBalance += 5000;
-      if (task.id === 5) newBalance += 15000;
+      // Calculate new balance
+      let amount = 0;
+      if (task.id === 1 || task.id === 2) amount = 5000;
+      if (task.id === 5) amount = 15000;
 
-      // Update balance
+      const newBalance = profile.balance + amount;
+
+      // Update balance in database
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ balance: newBalance })
         .eq("id", user.id);
 
       if (updateError) {
-        toast.error("Failed. Try again.");
+        toast.error("Failed to update balance. Try again.");
       } else {
         // Mark as claimed for today
         markTaskAsClaimed(task.id);
+        
+        // Show success message
         toast.success(`${task.reward} added to your balance!`);
-        if (task.link) window.open(task.link, "_blank");
+        
+        // Open link for Telegram/WhatsApp tasks (even if balance update worked)
+        if (task.link) {
+          window.open(task.link, "_blank");
+        }
       }
     } catch (error) {
       console.error("Error:", error);
@@ -156,7 +165,7 @@ const Tasks = () => {
 
         <Card className="bg-muted/50 border-border/50 p-4">
           <p className="text-sm text-center text-muted-foreground">
-            Tasks reset every day at midnight. Check back tomorrow!
+            Tasks reset every day at midnight. Check back tomorrow for more rewards!
           </p>
         </Card>
       </div>
