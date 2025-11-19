@@ -61,17 +61,76 @@ const Auth = () => {
             fullName: signupData.fullName,
             referralCode: finalRefCode,
           },
-          emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       });
 
       if (error) throw error;
 
       if (data.user) {
+        // MANUALLY CREATE PROFILE since trigger is failing
+        const referralCode = 'CHIXX' + Math.random().toString(36).substr(2, 6).toUpperCase();
+        
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            email: data.user.email,
+            full_name: signupData.fullName,
+            referral_code: referralCode,
+            balance: 50000,
+          });
+
+        if (profileError) {
+          console.error('Profile creation failed:', profileError);
+          // Continue anyway - don't break signup
+        }
+
+        // MANUALLY CREATE WELCOME BONUS TRANSACTION
+        await supabase
+          .from('transactions')
+          .insert({
+            user_id: data.user.id,
+            type: 'credit',
+            amount: 50000,
+            description: 'Welcome bonus',
+            status: 'completed',
+          });
+
+        // Handle referral if exists
+        if (finalRefCode) {
+          const { data: referrer } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('referral_code', finalRefCode)
+            .single();
+
+          if (referrer) {
+            // Update referrer stats
+            await supabase
+              .from('profiles')
+              .update({
+                total_referrals: supabase.sql('total_referrals + 1'),
+                balance: supabase.sql('balance + 15000')
+              })
+              .eq('id', referrer.id);
+
+            // Create transaction for referrer
+            await supabase
+              .from('transactions')
+              .insert({
+                user_id: referrer.id,
+                type: 'credit',
+                amount: 15000,
+                description: `Referral bonus from ${signupData.fullName}`,
+                status: 'completed',
+              });
+          }
+        }
+
         // Clear stored referral code after successful signup
         localStorage.removeItem("referralCode");
-        toast.success("Welcome to Chixx9ja! 🎉");
-        setTimeout(() => navigate("/welcome"), 1000);
+        toast.success("Welcome to Chixx9ja! 🎉 You got ₦50,000 bonus!");
+        navigate("/dashboard");
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to sign up");
