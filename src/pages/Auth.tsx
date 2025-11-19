@@ -90,22 +90,27 @@ const Auth = () => {
 
       // Handle referral
       if (finalRefCode && finalRefCode.trim() !== "") {
+        console.log("🔍 DEBUG: Looking for referrer with code:", finalRefCode.trim());
+        
         const { data: referrer, error: referrerError } = await supabase
           .from("profiles")
-          .select("id, balance, total_referrals")
+          .select("id, balance, total_referrals, referral_code")
           .eq("referral_code", finalRefCode.trim())
           .maybeSingle();
 
-        if (referrerError) {
-          console.error("Error finding referrer:", referrerError);
-        }
+        console.log("🔍 DEBUG: Referrer found:", referrer);
+        console.log("🔍 DEBUG: Referrer error:", referrerError);
 
         if (referrer) {
+          console.log("🔍 DEBUG: Updating referrer:", referrer.id);
           const currentBalance = Number(referrer.balance) || 0;
           const currentReferrals = Number(referrer.total_referrals) || 0;
           
           const newBalance = currentBalance + 15000;
           const newReferrals = currentReferrals + 1;
+
+          console.log("🔍 DEBUG: Current balance:", currentBalance, "referrals:", currentReferrals);
+          console.log("🔍 DEBUG: New balance:", newBalance, "referrals:", newReferrals);
 
           const { error: updateError } = await supabase
             .from("profiles")
@@ -115,8 +120,10 @@ const Auth = () => {
             })
             .eq("id", referrer.id);
 
-          if (updateError) {
-            console.error("Error updating referrer:", updateError);
+          console.log("🔍 DEBUG: Update error:", updateError);
+
+          if (!updateError) {
+            console.log("🔍 DEBUG: Successfully updated referrer");
           }
 
           await supabase.from("transactions").insert({
@@ -126,6 +133,8 @@ const Auth = () => {
             description: `Referral bonus from ${signupData.fullName}`,
             status: "completed",
           });
+        } else {
+          console.log("🔍 DEBUG: No referrer found or error occurred");
         }
       }
 
