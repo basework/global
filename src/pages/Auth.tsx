@@ -97,11 +97,17 @@ const Auth = () => {
           .maybeSingle();
 
         if (referrer) {
+          const currentBalance = Number(referrer.balance) || 0;
+          const currentReferrals = Number(referrer.total_referrals) || 0;
+          
+          const newBalance = currentBalance + 15000;
+          const newReferrals = currentReferrals + 1;
+
           await supabase
             .from("profiles")
             .update({
-              balance: (referrer.balance || 0) + 15000,
-              total_referrals: (referrer.total_referrals || 0) + 1,
+              balance: newBalance,
+              total_referrals: newReferrals,
             })
             .eq("id", referrer.id);
 
