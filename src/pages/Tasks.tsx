@@ -40,7 +40,7 @@ const Tasks = () => {
       .from("profiles")
       .select("telegram_joined, whatsapp_joined, last_daily_checkin")
       .eq("id", uid)
-      .single()
+      .maybesingle()
       .catch(() => ({ data: {} }));
 
     const today = new Date().toDateString();
