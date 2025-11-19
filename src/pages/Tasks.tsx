@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Tasks = () => {
   const navigate = useNavigate();
@@ -14,7 +15,6 @@ const Tasks = () => {
       title: "Join Telegram Channel",
       description: "Join our official Telegram channel for updates",
       reward: "₦5,000",
-      status: "available",
       link: "https://t.me/officialbluepay2025",
     },
     {
@@ -22,36 +22,34 @@ const Tasks = () => {
       title: "Join WhatsApp Group",
       description: "Join our WhatsApp community for instant updates",
       reward: "₦5,000",
-      status: "available",
       link: "https://chat.whatsapp.com/EB6wii8cqxI25rENGOzI5d?mode=wwt",
-    },
-    {
-      id: 3,
-      title: "Complete Profile",
-      description: "Fill out your profile information",
-      reward: "₦2,000",
-      status: "available",
-    },
-    {
-      id: 4,
-      title: "Make First Referral",
-      description: "Invite your first friend to Chixx9ja",
-      reward: "₦10,000",
-      status: "available",
     },
     {
       id: 5,
       title: "Daily Check-in",
-      description: "Login daily for 7 consecutive days",
+      description: "Come back every day and claim your reward!",
       reward: "₦15,000",
-      status: "pending",
     },
   ];
 
-  const handleTaskClick = (task: typeof tasks[0]) => {
-    if (task.link && task.status === "available") {
-      window.open(task.link, "_blank", "noopener,noreferrer");
-      toast.success("Task started! Complete it to earn your reward.");
+  const handleClaim = async (task: any) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    let amount = 0;
+    if (task.id === 1 || task.id === 2) amount = 5000;
+    if (task.id === 5) amount = 15000;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ balance: supabase.raw(`balance + ${amount}`) })
+      .eq("id", user.id);
+
+    if (error) {
+      toast.error("Failed. Try again.");
+    } else {
+      toast.success(`${task.reward} added instantly!`);
+      if (task.link) window.open(task.link, "_blank");
     }
   };
 
@@ -90,33 +88,20 @@ const Tasks = () => {
                   <span className="text-xs text-muted-foreground">reward</span>
                 </div>
               </div>
-              <div className="flex flex-col items-center gap-2">
-                {task.status === "available" ? (
-                  <button
-                    onClick={() => handleTaskClick(task)}
-                    className="bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 transition-all touch-manipulation min-h-[36px]"
-                  >
-                    Start
-                  </button>
-                ) : task.status === "pending" ? (
-                  <div className="flex items-center gap-1 text-yellow-500">
-                    <Clock className="w-4 h-4" />
-                    <span className="text-xs">Pending</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1 text-green-500">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span className="text-xs">Done</span>
-                  </div>
-                )}
-              </div>
+
+              <Button
+                onClick={() => handleClaim(task)}
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 px-6 py-3 font-bold"
+              >
+                Claim Now
+              </Button>
             </div>
           </Card>
         ))}
 
         <Card className="bg-muted/50 border-border/50 p-4">
           <p className="text-sm text-center text-muted-foreground">
-            New tasks are added regularly. Check back daily for more opportunities!
+            New tasks are added regularly. Check back daily!
           </p>
         </Card>
       </div>
