@@ -1,4 +1,4 @@
-/*import {
+import {
   Carousel,
   CarouselContent,
   CarouselItem,
@@ -54,4 +54,4 @@ export const PromotionsCarousel = () => {
       </Carousel>
     </div>
   );
-};*/
+};
