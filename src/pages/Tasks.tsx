@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle2, Clock, Gift } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Gift } from "lucide-react";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,13 +36,12 @@ const Tasks = () => {
   }, [navigate]);
 
   const loadTasks = async (uid: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("profiles")
       .select("telegram_joined, whatsapp_joined, last_daily_checkin")
       .eq("id", uid)
-      .single();
-
-    if (error && error.code !== "PGRST116") console.error(error);
+      .single()
+      .catch(() => ({ data: {} }));
 
     const today = new Date().toDateString();
     const lastDaily = data?.last_daily_checkin ? new Date(data.last_daily_checkin).toDateString() : null;
@@ -67,22 +66,6 @@ const Tasks = () => {
         link: "https://chat.whatsapp.com/EB6wii8cqxI25rENGOzI5d?mode=wwt",
       },
       {
-        id: 3,
-        title: "Complete Profile",
-        description: "Fill out your profile information",
-        reward: "₦2,000",
-        amount: 2000,
-        status: "available",
-      },
-      {
-        id: 4,
-        title: "Make First Referral",
-        description: "Invite your first friend to Chixx9ja",
-        reward: "₦10,000",
-        amount: 10000,
-        status: "available",
-      },
-      {
         id: 5,
         title: "Daily Check-in",
         description: "Come back every day and claim your reward!",
@@ -96,30 +79,20 @@ const Tasks = () => {
   const claimInstant = async (task: Task) => {
     if (task.status === "completed") return;
 
-    let updates: any = {
-      balance: supabase.raw(`balance + ${task.amount}`),
-    };
-
+    let updates: any = { balance: supabase.raw(`balance + ${task.amount}`) };
     if (task.id === 1) updates.telegram_joined = true;
     if (task.id === 2) updates.whatsapp_joined = true;
     if (task.id === 5) updates.last_daily_checkin = new Date().toISOString();
 
-    const { error } = await supabase
-      .from("profiles")
-      .update(updates)
-      .eq("id", userId);
+    const { error } = await supabase.from("profiles").update(updates).eq("id", userId);
 
     if (error) {
       toast.error("Failed. Try again.");
       return;
     }
 
-    toast.success(`${task.reward} added instantly!`, { duration: 5000 });
-
-    if (task.link) {
-      window.open(task.link, "_blank", "noopener,noreferrer");
-    }
-
+    toast.success(`${task.reward} added instantly!`, { duration: 4000 });
+    if (task.link) window.open(task.link, "_blank");
     loadTasks(userId);
   };
 
@@ -143,7 +116,6 @@ const Tasks = () => {
         <Card className="bg-gradient-to-br from-card to-card/80 backdrop-blur-lg border-border/50 p-6">
           <div className="flex items-center gap-3">
             <Gift className="w-8 h-8 text-primary" />
-            
             <div>
               <h2 className="text-xl font-bold">Earn Extra Rewards</h2>
               <p className="text-sm text-muted-foreground">
@@ -160,32 +132,31 @@ const Tasks = () => {
                 <h3 className="font-semibold mb-1">{task.title}</h3>
                 <p className="text-sm text-muted-foreground mb-3">{task.description}</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-primary">{task.reward}</span>
-                  <span className="text-xs text-muted-foreground">reward</span>
+                  <span className="text-lg font-bold text-primary">{task.reward}</span>
+                  <span className="text-xs text-muted-foreground">instant reward</span>
                 </div>
               </div>
-              <div className="flex flex-col items-center gap-2">
-                {task.status === "available" ? (
-                  <button
-                    onClick={() => claimInstant(task)}
-                    className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-lg text-base font-bold hover:opacity-90 transition-all min-w-[120px]"
-                  >
-                    Claim Now
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2 text-green-500">
-                    <CheckCircle2 className="w-6 h-6" />
-                    <span className="font-semibold">Completed</span>
-                  </div>
-                )}
-              </div>
+
+              {task.status === "available" ? (
+                <Button
+                  onClick={() => claimInstant(task)}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-6 py-3 rounded-lg"
+                >
+                  Claim Now
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2 text-green-500">
+                  <CheckCircle2 className="w-6 h-6" />
+                  <span className="font-semibold">Completed</span>
+                </div>
+              )}
             </div>
           </Card>
         ))}
 
-        <Card className="bg-muted/50 border-border/50 p-4">
-          <p className="text-sm text-center text-muted-foreground">
-            New tasks are added regularly. Check back daily for more opportunities!
+        <Card className="bg-muted/50 border-border/50 p-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            All rewards paid instantly • Daily check-in resets every 24 hours
           </p>
         </Card>
       </div>
