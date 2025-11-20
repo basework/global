@@ -137,10 +137,9 @@ export const AddBalanceModal = ({ open, onOpenChange, onSuccess }: any) => {
             </div>
 
             {/* This red box proves scrolling works */}
-            <div className="h-64 bg-amber-600 rounded-xl flex items-center justify-center text-white text-3xl font-bold shadow-xl">
-              
-              <pre>Our team verifies deposits within minutes — usually under 5 mins</pre>
-              
+            <div className="h-64 bg-yellow-500 rounded-xl flex items-center justify-center text-white text-3xl font-bold">
+              Your balance will be credited instantly 
+              once we confirm your payment
             </div>
           </div>
 
