@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Eye, EyeOff, Copy, Gift, DollarSign, CheckCircle2, History, Disc3, Radio } from "lucide-react";
+import { Eye, EyeOff, Copy, Gift, DollarSign, CheckCircle2, History, Disc3, Radio, Shield, TrendingUp, Users, Home, Gamepad2, User } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
-
 import { ArrowRight } from "lucide-react";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { WithdrawalNotification } from "@/components/WithdrawalNotification";
 import { AddBalanceModal } from "@/components/AddBalanceModal";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -54,7 +54,6 @@ const Dashboard = () => {
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      // Add small delay to prevent race conditions on mobile
       setTimeout(() => navigate("/auth"), 100);
     } else {
       setUser(session.user);
@@ -73,7 +72,6 @@ const Dashboard = () => {
       if (error) throw error;
       setProfile(data);
 
-      // Load last claim
       const { data: claims } = await supabase
         .from("claims")
         .select("*")
@@ -108,14 +106,12 @@ const Dashboard = () => {
 
     setClaiming(true);
     try {
-      // Create claim record
       const { error: claimError } = await supabase
         .from("claims")
         .insert({ user_id: user.id, amount: 15000 });
 
       if (claimError) throw claimError;
 
-      // Update balance
       const newBalance = (profile?.balance || 0) + 15000;
       const { error: updateError } = await supabase
         .from("profiles")
@@ -124,7 +120,6 @@ const Dashboard = () => {
 
       if (updateError) throw updateError;
 
-      // Create transaction
       await supabase
         .from("transactions")
         .insert({
@@ -166,6 +161,7 @@ const Dashboard = () => {
     <div className="min-h-screen liquid-bg pb-20" style={{ position: 'relative', zIndex: 1 }}>
       <WelcomeModal />
       <WithdrawalNotification />
+
       {/* Header */}
       <div className="bg-gradient-to-r from-primary to-secondary p-4 text-primary-foreground glow-primary" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 2 }}>
         <div className="flex items-center gap-3">
@@ -232,9 +228,6 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Promotions Carousel */}
-       {/*<PromotionsCarousel />*/}
-
         {/* View Daily Tasks Link */}
         <div className="px-4">
           <button
@@ -256,7 +249,7 @@ const Dashboard = () => {
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <Gift className="w-5 h-5 text-primary" />
-              <span className="text-xs font-semibold">💸 Refer & Earn</span>
+              <span className="text-xs font-semibold">Refer & Earn</span>
             </button>
             <button
               type="button"
@@ -265,7 +258,7 @@ const Dashboard = () => {
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <DollarSign className="w-5 h-5 text-secondary" />
-              <span className="text-xs font-semibold">💳 Withdraw</span>
+              <span className="text-xs font-semibold">Withdraw</span>
             </button>
             <button
               type="button"
@@ -274,7 +267,7 @@ const Dashboard = () => {
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <CheckCircle2 className="w-5 h-5 text-green-500" />
-              <span className="text-xs font-semibold">✅ Tasks</span>
+              <span className="text-xs font-semibold">Tasks</span>
             </button>
             <button
               type="button"
@@ -283,7 +276,7 @@ const Dashboard = () => {
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <History className="w-5 h-5 text-blue-500" />
-              <span className="text-xs font-semibold">📊 History</span>
+              <span className="text-xs font-semibold">History</span>
             </button>
             <button
               type="button"
@@ -292,7 +285,7 @@ const Dashboard = () => {
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <Disc3 className="w-5 h-5 text-accent" />
-              <span className="text-xs font-semibold">🎡 Spin</span>
+              <span className="text-xs font-semibold">Spin</span>
             </button>
             <button
               type="button"
@@ -301,7 +294,7 @@ const Dashboard = () => {
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <Radio className="w-5 h-5 text-primary" />
-              <span className="text-xs font-semibold">📣 Broadcast</span>
+              <span className="text-xs font-semibold">Broadcast</span>
             </button>
           </div>
         </div>
@@ -340,6 +333,130 @@ const Dashboard = () => {
             </div>
           </Card>
         </div>
+
+        {/* === YOUR NEW "Why Tivexx9ja" SECTION ADDED HERE === */}
+        <div className="mt-6">
+          <div className="why-glow bg-gradient-to-br from-black via-green-950 to-black rounded-2xl p-6 mb-6 mx-2 border border-green-500/30 relative overflow-hidden">
+            <div className="text-center mb-4 relative z-10">
+              <h2 className="text-2xl font-bold text-white mb-2">Why Tivexx9ja⁉️</h2>
+              <div className="w-16 h-1 bg-gradient-to-r from-green-500 to-yellow-400 mx-auto mb-4"></div>
+            </div>
+
+            <div className="space-y-3 mb-6 relative z-10">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold mb-1">100% Secure</h3>
+                  <p className="text-green-200 text-sm">Bank-level encryption protects your transactions and personal data</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-5 h-5 text-black" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold mb-1">Lightning Fast</h3>
+                  <p className="text-green-200 text-sm">Instant withdrawals and seamless transactions in seconds</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold mb-1">100% Reliable</h3>
+                  <p className="text-green-200 text-sm">24/7 support and guaranteed service uptime</p>
+                </div>
+              </div>
+            </div>
+
+            <Link to="/refer">
+              <Button className="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-black font-bold py-3 rounded-full text-lg">
+                Invite & Earn Now
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Bottom Navigation Bar */}
+        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-br from-gray-900 via-green-900 to-black border-t border-green-800/30 shadow-lg flex justify-around items-center h-16 max-w-md mx-auto z-50">
+          <Link to="/dashboard" className="flex flex-col items-center text-green-400">
+            <Home className="h-6 w-6" />
+            <span className="text-xs font-medium">Home</span>
+          </Link>
+          <Link to="/abouttivexx" className="flex flex-col items-center text-gray-400 hover:text-green-400">
+            <Gamepad2 className="h-6 w-6" />
+            <span className="text-xs font-medium">About Tivexx</span>
+          </Link>
+          <Link to="/refer" className="flex flex-col items-center text-gray-400 hover:text-green-400">
+            <User className="h-6 w-6" />
+            <span className="text-xs font-medium">Refer & Earn</span>
+          </Link>
+        </div>
+
+        {/* Custom Styles for Glow Effect */}
+        <style jsx global>{`
+          @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+          }
+          .animate-bounce-slow { animation: bounce-slow 3s ease-in-out infinite; }
+
+          @keyframes glow-swipe {
+            0% { opacity: 0.7; transform: translateX(-10%); filter: blur(10px); }
+            50% { opacity: 1; transform: translateX(10%); filter: blur(18px); }
+            100% { opacity: 0.7; transform: translateX(-10%); filter: blur(10px); }
+          }
+
+          @keyframes shimmer {
+            0% { left: -120%; }
+            50% { left: 120%; }
+            100% { left: -120%; }
+          }
+
+          .why-glow {
+            position: relative;
+            overflow: hidden;
+          }
+
+          .why-glow::before {
+            content: "";
+            position: absolute;
+            top: -25%;
+            left: -25%;
+            width: 150%;
+            height: 150%;
+            background: radial-gradient(circle at 20% 20%, rgba(34,197,94,0.10), transparent 8%),
+                        radial-gradient(circle at 80% 80%, rgba(96,165,250,0.05), transparent 10%);
+            filter: blur(22px);
+            transform: translate3d(0,0,0);
+            animation: glow-swipe 6s linear infinite;
+            pointer-events: none;
+          }
+
+          .why-glow::after {
+            content: "";
+            position: absolute;
+            top: -10%;
+            left: -120%;
+            width: 60%;
+            height: 120%;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-20deg);
+            filter: blur(6px);
+            animation: shimmer 3.5s ease-in-out infinite;
+            pointer-events: none;
+          }
+
+          .why-glow > * {
+            position: relative;
+            z-index: 1;
+          }
+        `}</style>
       </div>
 
       <FloatingActionButton />
