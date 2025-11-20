@@ -6,7 +6,7 @@ import { Eye, EyeOff, Copy, Gift, DollarSign, CheckCircle2, History, Disc3, Radi
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
-/*import { PromotionsCarousel } from "@/components/PromotionsCarousel";*/
+import { PromotionsCarousel } from "@/components/PromotionsCarousel";
 import { ArrowRight } from "lucide-react";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { WithdrawalNotification } from "@/components/WithdrawalNotification";
