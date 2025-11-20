@@ -2,60 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Updated design system: Velvet Indigo + Ash Black (cool dark gray) blend */
-/* Removed the warm gold/yellow tones, replaced with a sophisticated ash-black/slate metallic feel */
+/* Velvet Indigo × Deep Black — truly intertwined, never side-by-side */
+/* Every gradient and effect now mixes indigo + black in the same space */
 
 @layer base {
   :root {
-    /* Core palette – Velvet Indigo stays, Gold → Ash Black / Metallic Slate */
-    --background: 274 100% 25%;           /* Velvet Indigo – kept as main dark */
-    --foreground: 240 10% 94%;            /* Platinum Frost – kept (clean light text) */
+    --background: 274 100% 25%;           /* Velvet Indigo base */
+    --foreground: 240 10% 94%;            /* Platinum Frost text */
 
-    --card: 274 100% 20%;
+    --card: 270 80% 18%;
     --card-foreground: 240 10% 94%;
 
-    --popover: 274 100% 20%;
+    --popover: 270 80% 18%;
     --popover-foreground: 240 10% 94%;
 
-    /* Primary stays indigo-based, slightly lighter for buttons */
-    --primary: 274 100% 32%;
-    --primary-foreground: 240 10% 94%;    /* Changed from gold text → clean platinum */
+    --primary: 274 100% 35%;              /* Slightly brighter indigo for buttons */
+    --primary-foreground: 0 0% 92%;       /* Almost pure white on primary */
 
-    /* Secondary & Accent → Ash Black / Cool Metallic Slate instead of gold */
-    --secondary: 240 8% 22%;              /* Deep ash black */
+    --secondary: 240 5% 15%;              /* Near-black with subtle blue undertone */
     --secondary-foreground: 240 10% 94%;
 
-    --muted: 274 100% 18%;
-    --muted-foreground: 240 10% 70%;
+    --muted: 270 70% 15%;
+    --muted-foreground: 240 10% 65%;
 
-    --accent: 240 8% 22%;                 /* Same ash black as secondary for cohesion */
+    --accent: 240 5% 15%;
     --accent-foreground: 240 10% 94%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 240 10% 94%;
 
-    --border: 240 8% 25%;                 /* Subtle ash border instead of indigo */
-    --input: 240 8% 20%;
-    --ring: 274 100% 45%;                 /* Keep a hint of indigo glow for focus */
+    --border: 270 60% 20%;
+    --input: 270 70% 16%;
+    --ring: 274 100% 45%;                 /* Pure indigo focus ring */
 
     --radius: 1rem;
 
-    /* Updated gradients – now velvet indigo + ash black blend */
-    --gradient-liquid: linear-gradient(135deg, hsl(274 100% 25% / 0.5), hsl(240 8% 18% / 0.3));
-    --gradient-primary: linear-gradient(135deg, hsl(274 100% 25%), hsl(274 100% 35%));
-    --gradient-secondary: linear-gradient(135deg, hsl(240 8% 18%), hsl(240 8% 28%));
-    --gradient-mixed: linear-gradient(135deg, hsl(274 100% 30%), hsl(240 8% 22%));
+    /* TRUE intertwined gradients — indigo and black bleed into each other */
+    --gradient-liquid: 
+      radial-gradient(circle at 20% 80%, hsl(274 100% 35% / 0.6), transparent 50%),
+      radial-gradient(circle at 80% 20%, hsl(240 5% 10% / 0.8), transparent 50%),
+      linear-gradient(135deg, hsl(274 90% 22%), hsl(240 5% 12%));
 
-    /* Updated glows – indigo stays, secondary glow becomes cold ash */
-    --shadow-glow-primary: 0 0 40px hsl(274 100% 40% / 0.5);
-    --shadow-glow-secondary: 0 0 40px hsl(240 8% 30% / 0.4);
+    --gradient-primary: 
+      conic-gradient(from 90deg at 50% 50%, hsl(274 100% 30%), hsl(240 5% 10%), hsl(274 100% 30%));
+
+    --gradient-secondary: 
+      repeating-linear-gradient(45deg, 
+        hsl(240 5% 12%) 0px, 
+        hsl(270 80% 18%) 20px, 
+        hsl(240 5% 12%) 40px);
+
+    --gradient-mixed: 
+      radial-gradient(circle farthest-corner, hsl(274 95% 25%), hsl(240 5% 8%));
+
+    /* Glows now feel like indigo light trapped inside black metal */
+    --shadow-glow-primary: 0 0 50px hsl(274 100% 40% / 0.6);
+    --shadow-glow-secondary: 0 0 40px hsl(240 5% 20% / 0.7);
   }
 }
 
 @layer utilities {
-  /* Liquid background now feels like dark velvet with subtle cold ash metallic movement */
+  /* Deep liquid background — indigo and black truly fused */
   .liquid-bg {
-    background: linear-gradient(135deg, hsl(274 100% 20%), hsl(274 100% 25%));
+    background: hsl(240 5% 10%);
     position: relative;
     overflow: hidden;
   }
@@ -63,41 +72,46 @@
   .liquid-bg::before {
     content: '';
     position: absolute;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at 30% 50%, hsl(274 100% 38% / 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 70% 50%, hsl(240 8% 28% / 0.2) 0%, transparent 50%);
-    animation: liquid-float 22s ease-in-out infinite;
+    inset: -50%;
+    background: 
+      radial-gradient(circle at 25% 25%, hsl(274 100% 40% / 0.4), transparent 40%),
+      radial-gradient(circle at 75% 75%, hsl(274 100% 35% / 0.35), transparent 45%),
+      radial-gradient(circle at 50% 50%, hsl(240 5% 8% / 0.9), hsl(274 90% 20%) 70%);
+    animation: liquid-float 18s ease-in-out infinite;
     pointer-events: none;
-    z-index: 0;
   }
   
   @keyframes liquid-float {
-    0%, 100% { transform: translate(-10%, -10%) rotate(0deg); }
-    25%      { transform: translate(-5%, -15%) rotate(90deg); }
-    50%      { transform: translate(-15%, -5%) rotate(180deg); }
-    75%      { transform: translate(-5%, -10%) rotate(270deg); }
+    0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+    33%      { transform: translate(-8%, 10%) rotate(120deg) scale(1.1); }
+    66%      { transform: translate(12%, -8%) rotate(240deg) scale(0.95); }
   }
-  
-  /* Gradient text now goes from platinum to subtle ash metallic instead of gold */
+
+  /* Text gradient — indigo-to-black shimmer */
   .gradient-text {
-    background: linear-gradient(135deg, hsl(240 10% 94%), hsl(240 8% 55%));
+    background: linear-gradient(135deg, 
+      hsl(274 100% 70%) 0%, 
+      hsl(240 10% 94%) 30%, 
+      hsl(240 5% 15%) 70%, 
+      hsl(274 100% 50%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   .glow-primary {
-    box-shadow: var(--shadow-glow-primary);     /* Stronger indigo glow */
+    box-shadow: var(--shadow-glow-primary);
   }
   
   .glow-secondary {
-    box-shadow: var(--shadow-glow-secondary);   /* Cold ash metallic glow */
+    box-shadow: var(--shadow-glow-secondary);
   }
 
-  /* New utility if you want a pure ash-black metallic shine */
-  .glow-ash {
-    box-shadow: 0 0 30px hsl(240 8% 30% / 0.5);
+  /* Extra intense intertwined glow if you want it */
+  .glow-deep {
+    box-shadow: 
+      0 0 60px hsl(274 100% 45% / 0.7),
+      0 0 100px hsl(240 5% 5% / 0.8);
   }
 }
 
@@ -110,7 +124,6 @@
   body {
     @apply bg-background text-foreground;
     touch-action: manipulation;
-    font-feature-settings: "liga" 1, "kern" 1;
   }
 
   button, a, [role="button"] {
