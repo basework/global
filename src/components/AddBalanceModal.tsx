@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,9 +15,9 @@ interface AddBalanceModalProps {
 
 const FEE_PERCENT = 2;
 const BANK_DETAILS = {
-  bankName: "Moniepoint",
-  accountName: "DEBORAH VINCENT",
-  accountNumber: "5045609512",
+  bankName: "Sterling Bank",
+  accountName: "CHINEMEREM LIBERTY",
+  accountNumber: "0108835271",
 };
 
 export const AddBalanceModal = ({ open, onOpenChange, onSuccess }: AddBalanceModalProps) => {
@@ -36,37 +31,47 @@ export const AddBalanceModal = ({ open, onOpenChange, onSuccess }: AddBalanceMod
   const totalToPay = amountNum + fee;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = Array.from(e.target.files || []);
-    const valid = selected.filter(f => {
-      const okType = ["image/jpeg", "image/jpg", "image/png", "application/pdf"].includes(f.type);
-      const okSize = f.size <= 5 * 1024 * 1024;
-      if (!okType) toast.error(`${f.name}: Wrong type`);
-      if (!okSize) toast.error(`${f.name}: Max 5MB`);
-      return okType && okSize;
+    const selectedFiles = Array.from(e.target.files || []);
+    const validFiles = selectedFiles.filter(file => {
+      const isValidType = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'].includes(file.type);
+      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
+      if (!isValidType) toast.error(`${file.name}: Invalid file type`);
+      if (!isValidSize) toast.error(`${file.name}: File too large (max 5MB)`);
+      return isValidType && isValidSize;
     });
-
-    if (files.length + valid.length > 3) {
-      toast.error("Max 3 files only");
+    
+    if (files.length + validFiles.length > 3) {
+      toast.error("Maximum 3 files allowed");
       return;
     }
-    setFiles(prev => [...prev, ...valid]);
-    e.target.value = "";
+    
+    setFiles([...files, ...validFiles]);
   };
 
-  const removeFile = (i: number) => setFiles(prev => prev.filter((_, idx) => idx !== i));
+  const removeFile = (index: number) => {
+    setFiles(files.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async () => {
-    if (amountNum < 1000) return toast.error("Minimum ₦1,000");
-    if (!files.length) return toast.error("Upload receipt");
+    if (amountNum < 1000) {
+      toast.error("Minimum amount is ₦1,000");
+      return;
+    }
+
+    if (files.length === 0) {
+      toast.error("Please upload at least one receipt");
+      return;
+    }
 
     setIsSubmitting(true);
     setUploading(true);
-
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Login required");
+      if (!session) throw new Error("Not authenticated");
 
-      const { data: topup, error } = await supabase
+      // Create top-up record
+      const { data: topup, error: topupError } = await supabase
         .from("instant_activation_payments")
         .insert({
           user_id: session.user.id,
@@ -78,32 +83,47 @@ export const AddBalanceModal = ({ open, onOpenChange, onSuccess }: AddBalanceMod
         .select()
         .single();
 
-      if (error || !topup) throw error || "Failed";
+      if (topupError) throw topupError;
 
-      await Promise.all(
-        files.map(async (file, i) => {
-          const ext = file.name.split(".").pop() || "file";
-          const path = `${session.user.id}/topup_${topup.id}_${i}.${ext}`;
-          const { error: up } = await supabase.storage.from("receipts").upload(path, file);
-          if (up) throw up;
-          const { error: meta } = await supabase.from("topup_receipts").insert({
+      // Upload files to storage
+      const uploadPromises = files.map(async (file, index) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${session.user.id}/topup_${topup.id}_${index}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('receipts')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        // Store receipt metadata
+        const { error: metaError } = await supabase
+          .from('topup_receipts')
+          .insert({
             topup_id: topup.id,
-            storage_key: path,
+            storage_key: fileName,
             mime_type: file.type,
             file_size: file.size,
             uploaded_by: session.user.id,
           });
-          if (meta) throw meta;
-        })
-      );
 
-      toast.success("Submitted! We go verify sharpaly");
-      onSuccess();
+        if (metaError) throw metaError;
+      });
+
+      await Promise.all(uploadPromises);
+
+      toast.success("Top-up request submitted! Processing...");
       onOpenChange(false);
       setAmount("");
       setFiles([]);
-    } catch (err: any) {
-      toast.error(err.message || "Something went wrong");
+      
+      setTimeout(() => {
+        toast.info("Your deposit is being verified. Please wait...");
+      }, 1000);
+      
+    } catch (error: any) {
+      console.error("Top-up error:", error);
+      toast.error(error.message || "Failed to submit top-up request");
     } finally {
       setIsSubmitting(false);
       setUploading(false);
@@ -112,78 +132,136 @@ export const AddBalanceModal = ({ open, onOpenChange, onSuccess }: AddBalanceMod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-0 max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <DialogHeader className="p-6 border-b flex items-center justify-between flex-shrink-0">
-          <DialogTitle className="text-xl font-bold">Add Balance</DialogTitle>
-          <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
-            <X className="w-5 h-5" />
-          </Button>
+      <DialogContent className="bg-card border-border">
+        <DialogHeader>
+          <DialogTitle>Add Balance</DialogTitle>
         </DialogHeader>
 
-        {/* SCROLLABLE MIDDLE — THIS IS THE ONE THAT WORKS ON ALL PHONES */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div className="space-y-4">
           {/* Bank Details */}
-          <div className="bg-muted/50 p-5 rounded-xl border">
-            <p className="font-bold mb-3">Transfer to:</p>
-            <div className="space-y-2">
+          <div className="bg-muted/50 p-3 rounded-lg space-y-2 text-sm">
+            <p className="font-semibold">Bank Details:</p>
+            <div className="space-y-1">
               <p><span className="text-muted-foreground">Bank:</span> {BANK_DETAILS.bankName}</p>
               <p><span className="text-muted-foreground">Name:</span> {BANK_DETAILS.accountName}</p>
-              <p><span className="text-muted-foreground">Account:</span> <strong className="font-mono text-lg">{BANK_DETAILS.accountNumber}</strong></p>
+              <p><span className="text-muted-foreground">Account:</span> {BANK_DETAILS.accountNumber}</p>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Label>Amount (₦)</Label>
-            <Input type="number" placeholder="Min ₦1,000" value={amount} onChange={e => setAmount(e.target.value)} className="h-12" />
+          {/* Amount Input */}
+          <div className="space-y-2">
+            <Label htmlFor="amount">Amount (₦)</Label>
+            <Input
+              id="amount"
+              type="number"
+              placeholder="Enter amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              min="1000"
+            />
           </div>
 
-          {amountNum >= 1000 && (
-            <div className="bg-muted/50 p-5 rounded-xl border space-y-3">
-              <div className="flex justify-between"><span>Amount</span><span>₦{amountNum.toLocaleString()}</span></div>
-              <div className="flex justify-between"><span>Fee (2%)</span><span>₦{fee.toLocaleString()}</span></div>
-              <div className="pt-3 border-t font-bold text-lg flex justify-between">
-                <span>Total to Pay</span>
-                <span className="text-primary">₦{totalToPay.toLocaleString()}</span>
+          {/* Fee Breakdown */}
+          {amountNum > 0 && (
+            <div className="bg-muted/50 p-3 rounded-lg space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Amount:</span>
+                <span className="font-semibold">₦{amountNum.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Fee ({FEE_PERCENT}%):</span>
+                <span className="font-semibold">₦{fee.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between border-t border-border pt-1 mt-1">
+                <span className="font-semibold">Total to Pay:</span>
+                <span className="font-bold text-primary">₦{totalToPay.toLocaleString()}</span>
               </div>
             </div>
           )}
 
-          <div className="space-y-4">
-            <Label>Upload Receipt (max 3)</Label>
-            <div className="border-2 border-dashed rounded-xl p-8 text-center">
-              <input type="file" id="file" multiple accept=".jpg,.jpeg,.png,.pdf" onChange={handleFileChange} className="hidden" disabled={files.length >= 3} />
-              <label htmlFor="file" className="cursor-pointer">
-                <Upload className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
-                <p>{files.length >= 3 ? "Max reached" : "Tap to upload"}</p>
+          {/* Receipt Upload */}
+          <div className="space-y-2">
+            <Label>Upload Receipt (Required)</Label>
+            <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+              <input
+                type="file"
+                id="receipt-upload"
+                multiple
+                accept=".jpg,.jpeg,.png,.pdf"
+                onChange={handleFileChange}
+                className="hidden"
+                disabled={files.length >= 3}
+              />
+              <label
+                htmlFor="receipt-upload"
+                className={`cursor-pointer flex flex-col items-center gap-2 ${files.length >= 3 ? 'opacity-50' : ''}`}
+              >
+                <Upload className="w-8 h-8 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  {files.length >= 3 
+                    ? "Maximum 3 files" 
+                    : "Click to upload or drag and drop"}
+                </p>
+                <p className="text-xs text-muted-foreground">JPG, PNG, PDF (max 5MB each)</p>
               </label>
             </div>
 
-            {files.map((f, i) => (
-              <div key={i} className="flex items-center gap-3 bg-muted/30 p-3 rounded-lg">
-                {f.type.startsWith("image/") ? <img src={URL.createObjectURL(f)} className="w-12 h-12 rounded object-cover" alt="" /> : <FileText className="w-12 h-12" />}
-                <div className="flex-1">
-                  <p className="text-sm truncate">{f.name}</p>
-                  <p className="text-xs text-muted-foreground">{(f.size / 1024 / 1024).toFixed(1)} MB</p>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => removeFile(i)}><X /></Button>
+            {/* File previews */}
+            {files.length > 0 && (
+              <div className="space-y-2 mt-3">
+                {files.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between bg-muted/50 p-2 rounded-lg"
+                  >
+                    <div className="flex items-center gap-2">
+                      {file.type === 'application/pdf' ? (
+                        <FileText className="w-5 h-5 text-primary" />
+                      ) : (
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt="Preview"
+                          className="w-10 h-10 object-cover rounded"
+                        />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium truncate max-w-[200px]">
+                          {file.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {(file.size / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFile(index)}
+                      disabled={uploading}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
 
-          <div className="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-xl">
-            <p className="font-bold">Send EXACT total amount above!</p>
+          <div className="bg-yellow-500/10 border border-yellow-500/20 p-3 rounded-lg text-sm text-yellow-500">
+            <p className="font-semibold">Note:</p>
+            <p>A {FEE_PERCENT}% fee is added to all top-ups. Please transfer the total amount shown above and upload payment receipt.</p>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="p-6 border-t flex-shrink-0">
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || amountNum < 1000 || files.length === 0}
-            className="w-full h-12 font-bold text-lg"
+            className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
           >
-            {isSubmitting ? "Submitting..." : "I've Paid & Uploaded Receipt"}
+            {isSubmitting 
+              ? uploading 
+                ? "Uploading..." 
+                : "Processing..." 
+              : "I've Paid & Attached Receipt"}
           </Button>
         </div>
       </DialogContent>
