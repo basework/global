@@ -179,41 +179,7 @@ const Dashboard = () => {
       </div>
 
       <div className="space-y-4 py-4" style={{ position: 'relative', zIndex: 2, pointerEvents: 'auto' }}>
-        {/* Mini Claim Card - SWAPPED POSITION WITH BALANCE */}
-        <div className="px-4">
-          <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20 p-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Gift className="w-5 h-5 text-secondary" />
-                  <p className="text-sm font-semibold">Claim Bonus</p>
-                </div>
-                <div className="text-xs px-2 py-1 bg-primary/20 rounded-full">
-                  {canClaim ? "Ready!" : timeRemaining}
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <h2 className="text-3xl md:text-4xl font-bold gradient-text">
-                  ₦15,000
-                </h2>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Every 5 minutes
-                </p>
-              </div>
-
-              <Button
-                onClick={handleClaim}
-                disabled={!canClaim || claiming}
-                className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-sm py-2"
-              >
-                {claiming ? "Claiming..." : canClaim ? "Claim Now" : timeRemaining}
-              </Button>
-            </div>
-          </Card>
-        </div>
-
-        {/* Balance Card - MOVED BELOW CLAIM SECTION */}
+        {/* Balance Card - NOW WITH CLAIM BUTTON INSTEAD OF TOP UP */}
         <div className="px-4">
           <Card className="bg-gradient-to-br from-card to-card/80 backdrop-blur-lg border-border/50 p-4 glow-primary animate-fade-in">
             <div className="space-y-3">
@@ -231,13 +197,35 @@ const Dashboard = () => {
               <h2 className="text-3xl md:text-4xl font-bold gradient-text">
                 {showBalance ? `₦${Number(profile.balance || 0).toLocaleString()}.00` : "****"}
               </h2>
+              {/* CLAIM BUTTON REPLACES TOP UP BUTTON */}
+              <Button
+                onClick={handleClaim}
+                disabled={!canClaim || claiming}
+                className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-sm py-2"
+              >
+                {claiming ? "Claiming..." : canClaim ? "Claim ₦15,000" : timeRemaining}
+              </Button>
+            </div>
+          </Card>
+        </div>
+
+        {/* Mini Claim Card - NOW WITH TOP UP BUTTON INSTEAD OF CLAIM */}
+        <div className="px-4">
+          <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-start gap-2 flex-1 min-w-0">
+                <DollarSign className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
+                <div className="text-xs min-w-0">
+                  <p className="font-semibold text-foreground">Top Up Your Wallet</p>
+                  <p className="text-muted-foreground truncate">Add funds to your account</p>
+                </div>
+              </div>
+              {/* TOP UP BUTTON REPLACES CLAIM BUTTON */}
               <Button
                 onClick={() => setShowTopUp(true)}
-                variant="outline"
-                size="sm"
-                className="w-full"
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-xs px-3 py-1 h-auto flex-shrink-0"
               >
-                Top-Up Wallet
+                Top Up
               </Button>
             </div>
           </Card>
