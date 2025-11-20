@@ -5,8 +5,8 @@
 /* EXACT COLOR MATCH: your why-glow class — black → green-950 → black with green-500/30 border */
 @layer base {
   :root {
-    --background: 0 0% 0%;                    /* pure black */
-    --foreground: 165 100% 90%;               /* bright jade text */
+    --background: 0 0% 0%;
+    --foreground: 165 100% 90%;
 
     --card: 0 0% 0%;
     --card-foreground: 165 100% 90%;
@@ -14,10 +14,10 @@
     --popover: 0 0% 0%;
     --popover-foreground: 165 100% 90%;
 
-    --primary: 165 100% 45%;                  /* vibrant jade (main buttons) */
+    --primary: 165 100% 45%;                  /* vibrant jade buttons */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 165 80% 8%;                  /* green-950 */
+    --secondary: 165 80% 8%;
     --secondary-foreground: 165 100% 85%;
 
     --muted: 165 80% 6%;
@@ -26,10 +26,10 @@
     --accent: 165 100% 45%;
     --accent-foreground: 0 0% 100%;
 
-    /* NEW: Bright ash / light jade for important boxes */
-    --bright-box: 165 90% 68%;                /* beautiful light jade / bright ash */
-    --bright-box-foreground: 0 0% 4%;         /* almost black text on bright boxes */
-    --bright-box-border: 165 100% 60% / 0.4;
+    /* BRIGHT ASH / LIGHT JADE FOR IMPORTANT BUTTONS & BOXES */
+    --bright: 165 90% 68%;                    /* this is the color you wanted */
+    --bright-foreground: 0 0% 4%;
+    --bright-border: 165 100% 60% / 0.4;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
@@ -37,7 +37,6 @@
     --border: 165 100% 50% / 0.3;
     --input: 165 80% 8%;
     --ring: 165 100% 60%;
-
     --radius: 1.5rem;
 
     --gradient-liquid: linear-gradient(to bottom right, hsl(0 0% 0%), hsl(165 80% 8%), hsl(0 0% 0%));
@@ -50,7 +49,7 @@
 }
 
 @layer utilities {
-  /* Your original */
+  /* Your original cards */
   .why-glow {
     @apply bg-gradient-to-br from-black via-green-950 to-black rounded-2xl p-6 mb-6 mx-2 border border-green-500/30 relative overflow-hidden;
   }
@@ -89,34 +88,31 @@
   .glow-primary { box-shadow: var(--shadow-glow-primary); }
   .glow-secondary { box-shadow: var(--shadow-glow-secondary); }
 
-  /* ────────────────────── NEW: BRIGHT BOXES YOU ASKED FOR ────────────────────── */
-  .bright-box,
-  .withdraw-box,
-  .history-box,
-  .deposit-box,
-  .spin-box,
-  .balance-box,
-  .stats-box {
-    @apply bg-[hsl(var(--bright-box))] text-[hsl(var(--bright-box-foreground))]
-           border border-[hsl(var(--bright-box-border))] rounded-2xl
-           shadow-xl shadow-green-500/20 backdrop-blur-sm
-           transition-all duration-300 hover:shadow-2xl hover:shadow-green-500/40;
+  /* THIS IS THE FIX — BRIGHT ASH/LIGHT JADE BUTTONS & BOXES */
+  .bright-btn,
+  button[class*="withdraw"],
+  button[class*="history"],
+  button[class*="spin"],
+  button[class*="deposit"],
+  button[class*="balance"],
+  .withdraw-btn,
+  .history-btn,
+  .spin-btn,
+  .deposit-btn,
+  .balance-btn,
+  [data-action="withdraw"],
+  [data-action="history"],
+  [data-action="spin"] {
+    @apply bg-[hsl(var(--bright))] text-[hsl(var(--bright-foreground))]
+           border border-[hsl(var(--bright-border))] rounded-2xl
+           font-semibold shadow-xl shadow-green-500/30
+           hover:shadow-2xl hover:shadow-green-500/50 hover:scale-105
+           transition-all duration-300;
   }
 
-  /* Optional hover glow */
-  .bright-box:hover,
-  .withdraw-box:hover,
-  .history-box:hover,
-  .deposit-box:hover,
-  .spin-box:hover,
-  .balance-box:hover {
-    @apply ring-4 ring-green-500/40 scale-[1.02];
-  }
-
-  /* ────────────────────── ALL YOUR PREVIOUS UTILITIES ────────────────────── */
+  /* All your previous utilities (unchanged) */
   .animate-slide-in-right { animation: slideInRight 0.5s ease-out forwards; }
   .animate-slide-in-left  { animation: slideInLeft  0.5s ease-out forwards; }
-
   @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
   @keyframes slideInLeft  { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
