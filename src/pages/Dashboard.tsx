@@ -233,7 +233,7 @@ const Dashboard = () => {
         </div>
 
         {/* Promotions Carousel */}
-        <PromotionsCarousel />
+       {/*<PromotionsCarousel />*/}
 
         {/* View Daily Tasks Link */}
         <div className="px-4">
