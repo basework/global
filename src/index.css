@@ -3,11 +3,8 @@
 @tailwind utilities;
 
 /* EXACT COLOR MATCH: your why-glow class — black → green-950 → black with green-500/30 border */
-/* Nothing else changed, just 100% locked to your exact colors */
-
 @layer base {
   :root {
-    /* Core */
     --background: 0 0% 0%;                    /* pure black */
     --foreground: 165 100% 90%;               /* bright jade text */
 
@@ -32,14 +29,12 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Exact colors from your class */
     --border: 165 100% 50% / 0.3;             /* green-500/30 */
     --input: 165 80% 8%;
     --ring: 165 100% 60%;
 
-    --radius: 1.5rem;                         /* matches rounded-2xl */
+    --radius: 1.5rem;
 
-    /* Exact gradients you gave me */
     --gradient-liquid: linear-gradient(to bottom right, 
                         hsl(0 0% 0%), 
                         hsl(165 80% 8%),   /* green-950 */
@@ -54,7 +49,7 @@
 }
 
 @layer utilities {
-  /* Your exact card — now reusable */
+  /* Your exact card */
   .why-glow {
     @apply bg-gradient-to-br from-black via-green-950 to-black 
            rounded-2xl p-6 mb-6 mx-2 border 
@@ -94,6 +89,66 @@
 
   .glow-primary { box-shadow: var(--shadow-glow-primary); }
   .glow-secondary { box-shadow: var(--shadow-glow-secondary); }
+
+  /* ────────────────────── NEW UTILITIES YOU WANTED ────────────────────── */
+  .一分animate-slide-in-right { animation: slideInRight 0.5s ease-out forwards; }
+  .一分animate-slide-in-left  { animation: slideInLeft  0.5s ease-out forwards; }
+
+  @keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+  }
+
+  @keyframes slideInLeft {
+    from { transform: translateX(-100%); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
+  }
+
+  /* Smooth inputs using your exact colors */
+  input, textarea, select,
+  [type="text"], [type="email"], [type="password"],
+  [type="number"], [type="tel"], [type="url"], [type="search"] {
+    @apply bg-black/50 border border-green-500/30 rounded-xl 
+           text-foreground placeholder-muted-foreground 
+           transition-all duration-200;
+  }
+
+  input:focus, textarea:focus, select:focus,
+  [type="text"]:focus, [type="email"]:focus, [type="password"]:focus,
+  [type="number"]:focus, [type="tel"]:focus, [type="url"]:focus, [type="search"]:focus {
+    @apply border-green-500/80 ring-4 ring-green-500/30 shadow-lg shadow-green-500/20;
+  }
+
+  /* Force shadcn rounded-md → rounded-xl */
+  .rounded-md { @apply !rounded-xl; }
+
+  /* Remove all outlines */
+  * { outline: none !important; }
+
+  /* Dialogs / modals */
+  .fixed > div, [role="dialog"], .modal, .popup, .dialog,
+  [data-radix-dialog-content], [data-radix-popover-content] {
+    @apply rounded-2xl overflow-hidden border border-green-500/30 
+           bg-gradient-to-br from-black via-green-950 to-black shadow-2xl;
+  }
+
+  /* Pill buttons in dialogs */
+  .fixed button, [role="dialog"] button, .modal button,
+  .popup button, .dialog button {
+    @apply rounded-full transition-all duration-200;
+  }
+
+  /* Dark jade accent classes */
+  .bg-dark-jade       { background-color: hsl(165 80% 8%); }   /* green-950 */
+  .bg-dark-jade-light { background-color: hsl(165 80% 14%); }
+  .bg-dark-jade-light:hover { background-color: hsl(165 100% 45%); }
+
+  /* Hide scrollbars */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 @layer base {
